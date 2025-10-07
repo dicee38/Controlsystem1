@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "../utils/api.js";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -7,12 +7,24 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // при монтировании компонента подгружаем токен из localStorage
+    const token = localStorage.getItem("token");
+    if (token) {
+      api.setToken(token);
+    }
+  }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     const res = await api.login(email, password);
+
     if (res.token) {
+      // сохраняем токен в localStorage
       localStorage.setItem("token", res.token);
-      navigate("/dashboard");
+      // устанавливаем токен для всех последующих запросов axios
+      api.setToken(res.token);
+      navigate("/dashboard"); // или куда нужно после логина
     } else {
       alert(res.message || "Ошибка входа");
     }
